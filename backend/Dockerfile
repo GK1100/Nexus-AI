@@ -20,6 +20,13 @@ RUN pip install --upgrade pip \
     && pip install torch --index-url https://download.pytorch.org/whl/cpu \
     && pip install -r requirements.txt
 
+# PRELOAD EMBEDDING MODEL (ADD HERE)
+RUN python - <<EOF
+from langchain_huggingface import HuggingFaceEmbeddings
+HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+print("✅ Embedding model preloaded at build time")
+EOF
+
 COPY . .
 
 EXPOSE 8000
