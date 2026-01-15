@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: multimodal-rag-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/data:/app/data
+      # Cache Hugging Face models to avoid re-downloading on rebuild
+      - huggingface-cache:/root/.cache/huggingface
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s  # Give 60 seconds for models to load on first request
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: multimodal-rag-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy  # Wait for backend health check to pass
+    restart: unless-stopped
+
+volumes:
+  huggingface-cache:
