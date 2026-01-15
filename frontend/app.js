@@ -1,5 +1,7 @@
 // const BACKEND_URL = "http://127.0.0.1:8000"; // FOR LOCAL SETUP
-const BACKEND_URL = "http://localhost:8000"; // FOR DOCKER SETUP (browser access)
+// const BACKEND_URL = "http://localhost:8000"; // FOR DOCKER SETUP (browser access)
+
+const BACKEND_URL = "https://nexus-ai-backend-34k9.onrender.com"; // FOR RENDER SETUP
 
 // State
 let SESSION_ID = null;
