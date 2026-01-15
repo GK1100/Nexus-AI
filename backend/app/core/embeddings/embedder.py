@@ -3,6 +3,9 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 import time
 
+import os
+os.environ["HF_HOME"] = "/tmp/huggingface"
+
 # Global variable for lazy loading
 _embedding_model = None
 
@@ -18,7 +21,8 @@ def get_embedding_model():
         try:
             print(f"[INFO] Loading embedding model (attempt {attempt + 1}/{max_retries})...")
             _embedding_model = HuggingFaceEmbeddings(
-                model_name="BAAI/bge-large-en",
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                # model_name="BAAI/bge-large-en",
                 model_kwargs={"device": "cpu"},  # set "cuda" if gpu available
                 encode_kwargs={"normalize_embeddings": True}
             )
