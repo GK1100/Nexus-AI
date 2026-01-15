@@ -1,193 +1,158 @@
-🧠 Multimodal RAG – Universal Document & Image Intelligence
+# 🧠 Multimodal RAG – Universal Document & Image Intelligence
 
-A production-ready Multimodal Retrieval-Augmented Generation (RAG) system that allows users to upload documents and images and ask natural language questions.
-The system intelligently retrieves relevant text + image context and generates accurate answers using modern LLMs, vision models, and vector databases.
+A production-ready **Multimodal Retrieval-Augmented Generation (RAG)** system for querying **documents and images** using natural language.  
+Supports **text + vision retrieval** with grounded LLM answers.
 
-✨ Features
+---
 
-📄 Document Understanding (PDF, DOCX, TXT)
+## ✨ Features
 
-🖼️ Image Understanding (OCR + Captioning + Visual Embeddings)
+- 📄 Document Q&A (PDF, DOCX, TXT)
+- 🖼️ Image Understanding (OCR + Captioning + Embeddings)
+- 🔍 Multimodal Retrieval (Text + Image vectors)
+- 🤖 LLM-grounded answers (no hallucinations)
+- 🌐 Clean Web UI (upload + chat)
+- 🚀 Dockerized full-stack setup
+- 🧩 Session-based isolation
 
-🔍 Multimodal Retrieval (Text + Image vectors)
+---
 
-🤖 LLM-powered Answers (context-grounded, no hallucinations)
+## 🏗️ Architecture
 
-🌐 Modern Web UI (drag-and-drop uploads, chat interface)
+Frontend (HTML / CSS / JS)
 
-🚀 Dockerized Full-Stack Setup
+↓
 
-🧩 Session-based Knowledge Isolation
-
-🏗️ Architecture Overview
-Frontend (HTML/CSS/JS)
-        ↓
 FastAPI Backend
-        ↓
- ┌───────────────┐
- │  Text Docs    │ → BGE Embeddings
- │  Images       │ → CLIP Embeddings
- │  OCR + BLIP   │ → Text Embeddings
- └───────────────┘
-        ↓
+
+↓
+
+Text → BGE Embeddings
+Images → CLIP + OCR + BLIP
+
+↓
+
 Pinecone Vector DB
-        ↓
-Groq LLM (LLaMA 3)
 
-🛠️ Tech Stack
-Backend
+↓
 
-FastAPI
+Groq LLaMA-3
 
-LangChain
+---
 
-Pinecone (Vector Database)
+## 🛠️ Tech Stack
 
-Groq (LLaMA-3.1)
+### Backend
+- FastAPI
+- LangChain
+- Pinecone
+- Groq (LLaMA-3.1)
+- HuggingFace Transformers
+- CLIP, BLIP, EasyOCR
 
-HuggingFace Transformers
+### Frontend
+- HTML, CSS, Vanilla JavaScript
+- Markdown rendering
+- Glassmorphism UI
 
-CLIP (Image Embeddings)
+### DevOps
+- Docker
+- Docker Compose
 
-BLIP (Image Captioning)
+---
 
-EasyOCR
+## 📂 Supported File Types
 
-Frontend
+| Type | Formats |
+|----|----|
+| Documents | PDF, DOCX, TXT |
+| Images | PNG, JPG, JPEG, WEBP |
 
-HTML, CSS, Vanilla JavaScript
+---
 
-Markdown Rendering
+## 🚀 Quick Start
 
-Glassmorphism UI
+### 1️⃣ Clone Repository
+```bash
+git clone https://github.com/GK1100/Nexus-AI.git
+cd Nexus-AI
+```
 
-DevOps
-
-Docker
-
-Docker Compose
-
-📂 Supported File Types
-Type	Formats
-Documents	PDF, DOCX, TXT
-Images	PNG, JPG, JPEG, WEBP
-🚀 Getting Started
-1️⃣ Clone the Repository
-git clone https://github.com/your-username/multimodal-rag.git
-cd multimodal-rag
-
-2️⃣ Environment Variables
-
-Create a .env file in the backend root:
+### 2️⃣ Environment Variables
+Create .env in backend root:
+```bash
+.env
 
 PINECONE_API_KEY=your_pinecone_key
 PINECONE_ENV=your_region
 GROQ_API_KEY=your_groq_key
+```
 
-3️⃣ Run with Docker (Recommended)
+### 3️⃣ Run with Docker (Recommended)
+```bash
 docker-compose up --build
-
-
 Frontend → http://localhost:3000
 
 Backend → http://localhost:8000
 
-Health Check → http://localhost:8000/health
+Health → http://localhost:8000/health
+```
 
-4️⃣ Run Without Docker (Local Dev)
-Backend
+### 4️⃣ Run Without Docker (Local)
+```bash
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+```
+---
 
-Frontend
+### 🔌 API Endpoints
 
-Open index.html directly in the browser
-(or use Live Server)
+POST /ingest/file – Upload document/image
 
-📥 How It Works
-Ingestion
+POST /query – Ask questions
 
-Upload document or image
+GET /health – Service status
 
-Text is chunked and embedded
+---
 
-Images use:
-
-CLIP → visual embeddings
-
-OCR → extracted text
-
-BLIP → captions
-
-Stored in Pinecone with session isolation
-
-Querying
-
-User asks a question
-
-Relevant chunks + images retrieved
-
-Context passed to LLM
-
-Grounded answer returned
-
-🔌 API Endpoints
-Upload File
-POST /ingest/file
-
-Ask Question
-POST /query
-
-{
-  "question": "What is explained in the diagram?",
-  "session_id": "uuid"
-}
-
-Health Check
-GET /health
-
-🧪 Example Use Cases
-
+### 🧪 Use Cases
 Research paper analysis
 
-Medical image understanding
+Medical image Q&A
 
-Business document Q&A
+Business document intelligence
 
-Technical diagram explanation
+Diagram explanation
 
 Knowledge base chatbot
 
-🧩 Project Structure
+---
+
+### 🧩 Project Structure
+
 ├── app/
+
 │   ├── core/
-│   │   ├── embeddings/
-│   │   ├── retriever/
-│   │   ├── vectorstore/
-│   │   └── preprocess/
+   
 │   ├── services/
+
 │   ├── routes/
+
 │   └── main.py
+
 ├── frontend/
-│   ├── index.html
-│   ├── app.js
-│   └── style.css
-├── docker-compose.yml
+
 ├── Dockerfile
+
+├── docker-compose.yml
+
 ├── requirements.txt
+
 └── README.md
+---
 
-⚠️ Notes
-
-Free Pinecone & Groq tiers supported
-
-Designed for scalable production use
-
-No hallucinations — answers strictly from retrieved context
-
-📌 Future Improvements
-
-Authentication & user accounts
+### 📌 Roadmap
+Authentication
 
 Streaming responses
 
@@ -195,13 +160,13 @@ RAG evaluation (RAGAS)
 
 Hybrid search (BM25 + Vector)
 
-Cloud deployment (Railway / Render)
+---
 
-📜 License
+### 📜 License
+MIT License
 
-MIT License – free to use, modify, and distribute.
-
-👨‍💻 Author
+### 👨‍💻 Author
 
 Gaurav Kumavat
+
 Multimodal AI | RAG | Backend Systems
