@@ -46,18 +46,24 @@ def save_text_vectors(embeddings, metadatas, chunks):
 
     index = init_index(TEXT_INDEX_NAME, len(embeddings[0]))
 
+    # Batch upsert for better performance
     vectors = []
     for i, emb in enumerate(embeddings):
         vectors.append({
             "id": f"text_{metadatas[i]['session_id']}_{i}",
             "values": emb,
             "metadata": {
-                "text": chunks[i],
+                "text": chunks[i][:1000],  # Limit metadata size to 1000 chars
                 **metadatas[i]
             }
         })
 
-    index.upsert(vectors)
+    # Upsert in batches of 100 (Pinecone limit)
+    batch_size = 100
+    for i in range(0, len(vectors), batch_size):
+        batch = vectors[i:i + batch_size]
+        index.upsert(batch)
+        print(f"[INFO] Upserted batch {i//batch_size + 1}/{(len(vectors)-1)//batch_size + 1}")
 
 
 # -------------------------------------------------

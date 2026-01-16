@@ -26,8 +26,20 @@ const connectionToast = document.getElementById('connection-toast');
    ========================================= */
 document.addEventListener('DOMContentLoaded', () => {
     checkServerStatus();
+    warmupModels(); // Pre-load models in background
     userQuery.focus();
 });
+
+// Warmup models in background (optional, improves first upload speed)
+async function warmupModels() {
+    try {
+        console.log("[INFO] Warming up models in background...");
+        await fetch(`${BACKEND_URL}/warmup`, { method: 'GET' });
+        console.log("[INFO] Models warmed up successfully!");
+    } catch (e) {
+        console.log("[INFO] Model warmup skipped (server might be cold starting)");
+    }
+}
 
 // Drag & Drop Events
 dropZone.addEventListener('dragover', (e) => {
@@ -112,23 +124,37 @@ async function handleFileUpload(file) {
     dropZone.classList.add('hidden');
     uploadProgress.classList.remove('hidden');
     uploadingFileName.innerText = file.name;
-    uploadStatusText.innerText = "Uploading & Indexing...";
+    uploadStatusText.innerText = "Uploading & Indexing... (First upload may take 2-3 minutes)";
     progressBar.style.width = "30%";
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
+        // Longer timeout for Render cold starts (models loading)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
+        
         const response = await fetch(`${BACKEND_URL}/ingest/file`, {
             method: "POST",
-            body: formData
+            body: formData,
+            mode: 'cors',
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         progressBar.style.width = "80%";
 
         if (!response.ok) {
             const err = await response.text();
-            throw new Error(JSON.parse(err).detail || "Upload failed");
+            let errorMsg = "Upload failed";
+            try {
+                errorMsg = JSON.parse(err).detail || errorMsg;
+            } catch {
+                errorMsg = err || errorMsg;
+            }
+            throw new Error(errorMsg);
         }
 
         const result = await response.json();
@@ -150,14 +176,24 @@ async function handleFileUpload(file) {
         }, 1000);
 
     } catch (error) {
-        console.error(error);
+        console.error("Upload error:", error);
         uploadStatusText.innerText = "Failed";
         uploadStatusText.style.color = "var(--error)";
-        showToast(error.message, "error");
+        
+        // Better error message for network issues
+        let errorMessage = error.message;
+        if (error.name === 'AbortError') {
+            errorMessage = "Request timed out. The server might be loading models (cold start). Please try again in a minute.";
+        } else if (error.message.includes('fetch') || error.name === 'TypeError') {
+            errorMessage = "Cannot connect to backend. Please ensure the backend is running at " + BACKEND_URL;
+        }
+        
+        showToast(errorMessage, "error");
 
         setTimeout(() => {
             uploadProgress.classList.add('hidden');
             dropZone.classList.remove('hidden');
+            uploadStatusText.style.color = ""; // Reset color
         }, 3000);
     }
 }
@@ -200,14 +236,20 @@ async function askQuestion() {
     const typingId = showTypingIndicator();
 
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes for queries
+        
         const response = await fetch(`${BACKEND_URL}/query`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 question: query,
                 session_id: SESSION_ID
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         if (!response.ok) throw new Error("Failed to get answer");
 
@@ -220,7 +262,13 @@ async function askQuestion() {
     } catch (error) {
         console.error(error);
         removeMessage(typingId);
-        addMessage('bot', "❌ Sorry, I encountered an error while processing your request. Please check the backend connection.");
+        
+        let errorMsg = "❌ Sorry, I encountered an error while processing your request.";
+        if (error.name === 'AbortError') {
+            errorMsg = "⏱️ Request timed out. The server might be busy or loading models. Please try again.";
+        }
+        
+        addMessage('bot', errorMsg);
     } finally {
         sendBtn.disabled = false;
         userQuery.focus();
